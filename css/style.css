@@ -1,14 +1,13 @@
        body{background:#000A14;}
        td{
-	   width:10px;
-	   height:10px;
-	   padding: 3px;
+	   width:20px;
+	   height:20px;
        }
       
        #game{
        border:20px solid black;
        border-radius:5px;
-       -webkit-border-radius:5px;
+       -chrome-border-radius:5px;
        position:absolute;
        top:10%;
        left:38%
@@ -18,7 +17,7 @@
        background:lightgray;
        padding:5px;
        border-radius:3px;
-       -webkit-border-radius:3px;
+       -chrome-border-radius:3px;
        }
        
        #board{
@@ -36,7 +35,17 @@
        }
 
        .smiley-space{
-	   margin-left:18%;
+	   margin-left:26%;
        }
 
-       
+       .blank-block{
+	   border: none;
+	   background: darkgray;
+	   padding:4px 4px;
+       }
+
+       .node-value{
+	   color: blue;
+	   padding:4px 4px;
+	   font-size:16px;
+       }
