@@ -37,7 +37,7 @@
     
     function clickTd (){
 	var td = document.getElementsByTagName("td");
-	var planted = [],initFlag = false,inter;
+	var planted = [],initFlag = false,inter,smiley = document.getElementById("smiley-img");
 
 	//randomly plant bomb
 	function plantBombs (id) {
@@ -157,147 +157,97 @@
 		    mine = document.getElementById(planted[z]);
 		    mine.classList.add("blank-block");
 		    mine.innerHTML = "<img src='images/bomb.png' width='16px'>";
-		    clearInterval(inter);
 		}
+		for(var i=0;i<td.length;i+=1){
+		    td[i].removeEventListener('click', playGame, false);
+		}
+		clearInterval(inter); // stopping timer
+		smiley.setAttribute("src","images/sad.png");
+		//lost game
+		return false;
 	    }
 	    //explode mines end
 	    
 	    //clicked node has value other than 0
 	    nodeValue = minesweeper.values[clickedNode];
 	    currentNode = document.getElementById(clickedNode);
-	    if(nodeValue !== 0){
+	    if(nodeValue !== 0 && planted.indexOf(clickedNode) === -1){
 		currentNode.classList.add("blank-block");
 		currentNode.innerHTML = "<b class='node-value'>"+nodeValue+"</b>";
 	    }
-	    else{
+	    else if(nodeValue === 0 && planted.indexOf(clickedNode) === -1){
 		//for blank spaces i.e value is 0
-
-		function goLeft(left){
-		    var thisNode = document.getElementById(left);
-		    nodeValue = minesweeper.values[left];
-		    if(nodeValue === 0 && planted.indexOf(left) === -1){
-			thisNode.classList.add("blank-block");
-			if(thisNode.previousSibling !== null){
-			    goLeft(left-1);
-			}
-		    }
-		    return false;
-		}
+		var visited = [];
+		var count=0; //recursion counter
 		
-		function goRight(right){
-		    var thisNode = document.getElementById(right);
-		    nodeValue = minesweeper.values[right];
-		    if(nodeValue === 0 && planted.indexOf(right) === -1){
-			thisNode.classList.add("blank-block");
-			if(thisNode.nextSibling !== null){
-			    goRight(right+1);
-			}
-		    }
-		    return false;
-
-		}
+		function traverse(k,thisNode,direction){
 		
-		function goUp(up){
-		    var thisNode = document.getElementById(up);
-		    nodeValue = minesweeper.values[up];
-		    if(nodeValue === 0 && planted.indexOf(up)===-1 ){
-			thisNode.classList.add("blank-block");
-			if(thisNode.parentNode.previousSibling !== null){
-			    goUp(up - minesweeper.cols);
-			}
-			if(thisNode.previousSibling !== null){
-			    goLeft(up-1);
-			}
-			if(thisNode.nextSibling !== null){
-			    goRight(up+1);
-			}
-		    }
-		    return false;
-		}
-
-		function goDown(down){
-		    var thisNode = document.getElementById(down);
-		    nodeValue = minesweeper.values[down];
-		    if(nodeValue === 0 && planted.indexOf(down)=== -1){
-			thisNode.classList.add("blank-block");
-			if(thisNode.parentNode.nextSibling !== null){
-			    goDown(down + minesweeper.cols);
-			}
-			if(thisNode.previousSibling !== null){
-			    goLeft(down-1);
-			}
-			if(thisNode.nextSibling !== null){
-			    goRight(down+1);
-			}
-		    }
-		    return false;
-		}
-		
-		currentNode.classList.add("blank-block");
-		if(currentNode.parentNode.previousSibling !== null){
-		    goUp(clickedNode - minesweeper.cols);
-		    console.log("here1");
-		}
-		if(currentNode.parentNode.nextSibling !== null){
-		    goDown(clickedNode + minesweeper.cols);
-		    console.log("here2");
-		}
-		/*
-		if(currentNode.previousSibling !== null){
-		    goLeft(clickedNode - 1);
-		    console.log("here3");
-		}
-		if(currentNode.nextSibling !== null){
-		    goRight(clickedNode + 1);
-		    console.log("here4");
-		}*/
-		
-		
-		i=clickedNode - 1;
-		leftNode = currentNode;
-		while(leftNode.previousSibling !== null){
-		    leftNode = leftNode.previousSibling;
-		   
-		    nodeValue = minesweeper.values[i];
-		    if(nodeValue === 0 && planted.indexOf(i)===-1){
-			leftNode.classList.add("blank-block");
-			
-			if(leftNode.parentNode.previousSibling !== null){
-			    goUp(i - minesweeper.cols);
-			    console.log("here3");
-			}
+		    var left,right,up,down,id,isMine;
+		    var upleft,downleft,upright,downright;
+		    count+=1;
 		    
-			if(leftNode.parentNode.nextSibling !== null){
-			    goDown(i + minesweeper.cols);
-			    console.log("here4");
+		    if(visited.indexOf(k) !== -1){
+			return false;
+		    }
+
+		    left = thisNode.previousSibling;
+		    right = thisNode.nextSibling;
+		    up =  thisNode.parentNode.previousSibling;
+		    down = thisNode.parentNode.nextSibling;
+		    
+		    isMine = planted.indexOf(k);
+		    visited.push(k);
+		    nodeValue = minesweeper.values[k];
+
+		    if(nodeValue === 0 && isMine === -1){
+			thisNode.classList.add("blank-block");
+			if(left !== null){
+			    traverse(k-1, left);
 			}
+			if(right !== null){
+			    traverse(k+1, right);
+			}
+			if(up !== null){
+			    id = k - minesweeper.cols;
+			    up = document.getElementById(id);
+			    traverse(id, up);
+			}
+			if(down !== null){
+			    id = k + minesweeper.cols;
+			    down = document.getElementById(id);
+			    traverse(id, down);
+			}
+			if(up !== null && left !== null){
+			    id = (k-minesweeper.cols)-1;
+			    upleft = document.getElementById(id);
+			    traverse(id,upleft);
+			}
+			if(up !== null && right !== null){
+			    id = (k-minesweeper.cols)+1;
+			    upright = document.getElementById(id);
+			    traverse(id,upright);
+			}
+			if(down !== null && left !== null){
+			    id = (k+minesweeper.cols)-1;
+			    downleft = document.getElementById(id);
+			    traverse(id,downleft);
+			}
+			if(down !== null && right !== null){
+			    id = (k+minesweeper.cols)+1;
+			    downright = document.getElementById(id);
+			    traverse(id,downright);
+			}
+		    }
+		    else if(nodeValue !== 0 && isMine === -1){
+			thisNode.classList.add("blank-block");
+			thisNode.innerHTML = "<b class='node-value'>"+nodeValue+"</b>";
 		    }
 		    
-		    i-=1;
+		    return false;
 		}
 
-		i=clickedNode + 1;
-		rightNode = currentNode;
-		while(rightNode.nextSibling !== null){
-		    rightNode = rightNode.nextSibling;
-		    console.log("here5");
-		    nodeValue = minesweeper.values[i];
-		    if(nodeValue === 0 && planted.indexOf(i)===-1){
-			rightNode.classList.add("blank-block");
-
-			if(rightNode.parentNode.previousSibling !== null){
-			    goUp(i - minesweeper.cols);
-			    console.log("here6");
-			}
-			
-			if(rightNode.parentNode.nextSibling !== null){
-			    goDown(i + minesweeper.cols);
-			    console.log("here7");
-			}
-		    }
-		    i+=1;
-		}
-		
+		traverse(clickedNode,currentNode);
+		console.log("recursion function called : " +count+ " times");
 		//end of blank spaces
 	    }
 	    

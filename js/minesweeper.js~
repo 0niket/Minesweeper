@@ -165,12 +165,49 @@
 	    //clicked node has value other than 0
 	    nodeValue = minesweeper.values[clickedNode];
 	    currentNode = document.getElementById(clickedNode);
-	    if(nodeValue !== 0 && planted.indexOf(clickedNode)===-1){
+	    if(nodeValue !== 0){
 		currentNode.classList.add("blank-block");
 		currentNode.innerHTML = "<b class='node-value'>"+nodeValue+"</b>";
 	    }
 	    else{
 		//for blank spaces i.e value is 0
+
+		function goLeft(left){
+		    var thisNode = document.getElementById(left);
+		    nodeValue = minesweeper.values[left];
+		    if(nodeValue === 0 && planted.indexOf(left) === -1){
+			thisNode.classList.add("blank-block");
+			if(thisNode.previousSibling !== null){
+			    goLeft(left-1);
+			} 
+		/*	if(thisNode.parentNode.previousSibling !== null){
+			    goUp(left - minesweeper.cols);
+			}
+			if(thisNode.parentNode.nextSibling !== null){
+			    goDown(left + minesweeper.cols);
+			}*/
+		    }
+		    return false;
+		}
+		
+		function goRight(right){
+		    var thisNode = document.getElementById(right);
+		    nodeValue = minesweeper.values[right];
+		    if(nodeValue === 0 && planted.indexOf(right) === -1){
+			thisNode.classList.add("blank-block");
+			if(thisNode.nextSibling !== null){
+			    goRight(right+1);
+			} 
+		/*	if(thisNode.parentNode.previousSibling !== null){
+			    goUp(right - minesweeper.cols);
+			}
+			if(thisNode.parentNode.nextSibling !== null){
+			    goDown(right + minesweeper.cols);
+			}*/
+		    }
+		    return false;
+
+		}
 		
 		function goUp(up){
 		    var thisNode = document.getElementById(up);
@@ -179,7 +216,13 @@
 			thisNode.classList.add("blank-block");
 			if(thisNode.parentNode.previousSibling !== null){
 			    goUp(up - minesweeper.cols);
+			} 
+		/*	if(thisNode.previousSibling !== null){
+			    goLeft(up-1);
 			}
+			if(thisNode.nextSibling !== null){
+			    goRight(up+1);
+			}*/
 		    }
 		    return false;
 		}
@@ -192,12 +235,18 @@
 			if(thisNode.parentNode.nextSibling !== null){
 			    goDown(down + minesweeper.cols);
 			}
+		/*	if(thisNode.previousSibling !== null){
+			    goLeft(down-1);
+			}
+			if(thisNode.nextSibling !== null){
+			    goRight(down+1);
+			}*/
 		    }
 		    return false;
 		}
 		
 		currentNode.classList.add("blank-block");
-		if(currentNode.parentNode.previousSibling !== null){
+	/*	if(currentNode.parentNode.previousSibling !== null){
 		    goUp(clickedNode - minesweeper.cols);
 		    console.log("here1");
 		}
@@ -205,6 +254,16 @@
 		    goDown(clickedNode + minesweeper.cols);
 		    console.log("here2");
 		}
+		
+		if(currentNode.previousSibling !== null){
+		    goLeft(clickedNode - 1);
+		    console.log("here3");
+		}
+		if(currentNode.nextSibling !== null){
+		    goRight(clickedNode + 1);
+		    console.log("here4");
+		}
+		*/
 		
 		i=clickedNode - 1;
 		leftNode = currentNode;
@@ -217,13 +276,14 @@
 			
 			if(leftNode.parentNode.previousSibling !== null){
 			    goUp(i - minesweeper.cols);
-			    console.log("here3");
 			}
 		    
 			if(leftNode.parentNode.nextSibling !== null){
 			    goDown(i + minesweeper.cols);
-			    console.log("here4");
 			}
+		    }
+		    else{
+			break;
 		    }
 		    
 		    i-=1;
@@ -233,23 +293,68 @@
 		rightNode = currentNode;
 		while(rightNode.nextSibling !== null){
 		    rightNode = rightNode.nextSibling;
-		    console.log("here5");
 		    nodeValue = minesweeper.values[i];
 		    if(nodeValue === 0 && planted.indexOf(i)===-1){
 			rightNode.classList.add("blank-block");
 
 			if(rightNode.parentNode.previousSibling !== null){
 			    goUp(i - minesweeper.cols);
-			    console.log("here6");
 			}
 			
 			if(rightNode.parentNode.nextSibling !== null){
 			    goDown(i + minesweeper.cols);
-			    console.log("here7");
 			}
 		    }
-		    i+=1;
+		    else{
+			break;
+		    }
+		    i+=1; 
 		}
+
+		i=clickedNode - minesweeper.cols;
+		upTd = currentNode;
+		while(upTd.parentNode.previousSibling !== null){
+		    upTd = document.getElementById(i);
+		    nodeValue = minesweeper.values[i];
+		    if(nodeValue === 0 && planted.indexOf(i)===-1){
+			upTd.classList.add("blank-block");
+
+			if(upTd.previousSibling !== null){
+			    goLeft(i - 1);
+			}
+			
+			if(upTd.nextSibling !== null){
+			    goRight(i + 1);
+			}
+		    }
+		    else{
+			break;
+		    }
+		    i-=minesweeper.cols; 
+		}
+
+		i=clickedNode + minesweeper.cols;
+		downTd = currentNode;
+		while(downTd.parentNode.nextSibling !== null){
+		    downTd = document.getElementById(i);
+		    nodeValue = minesweeper.values[i];
+		    if(nodeValue === 0 && planted.indexOf(i)===-1){
+			downTd.classList.add("blank-block");
+
+			if(downTd.previousSibling !== null){
+			    goLeft(i - 1);
+			}
+			
+			if(downTd.nextSibling !== null){
+			    goRight(i + 1);
+			}
+		    }
+		    else{
+			break;
+		    }
+		    i+=minesweeper.cols; 
+		}
+		
 		//end of blank spaces
 	    }
 	    

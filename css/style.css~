@@ -41,11 +41,11 @@
        .blank-block{
 	   border: none;
 	   background: darkgray;
-	   padding:3px 3px;
+	   padding:4px 4px;
        }
 
        .node-value{
 	   color: blue;
 	   padding:4px 4px;
-	   font-size:19px;
+	   font-size:16px;
        }
