@@ -8,19 +8,7 @@
 	bombs:8
     };
 
-    //UI variables
-    var tableHtml,smiley,clock,bomb,board,rowsIntoCols,td,colors;
-    //other variables
-    var game,planted = [],initFlag = false,values = [],explodeFlag=false;
-
-    tableHtml = "<table id='blocks'>";
-    smiley = document.getElementById("smiley-img");
-    clock = document.getElementById("tick");
-    bomb = document.getElementById("no-bomb");
-    board = document.getElementById("board");
-    td = document.getElementsByTagName("td");
-    rowsIntoCols = ms.rows * ms.cols;   
-    colors = ["blue","green","red","brown","yellow","violet","chocolate","orange"];
+    var game,initFlag = false,explodeFlag=false;
     
     game = initGame(); 
     game.initUI(); //initialize UI
@@ -48,9 +36,7 @@
 	    initFlag = true;
 	    game.timer(); //start timer
 	    game.plantBombs(id); //plant mines
-	    console.log("planted mines: "+planted);
 	    game.calcValues(); //calculating values around mines.
-	    console.log("values : "+values);
 	}
 	explodeFlag = game.explodeMines(id);
 	if(explodeFlag === true){
@@ -76,8 +62,17 @@
 
     function initGame(){
 	//private variables and functions
-	var inter,visited=[];
+	var inter,visited=[],tableHtml,smiley,clock,bomb,board,rowsIntoCols,td,colors,values = [],planted = [];
 	
+	tableHtml = "<table id='blocks'>";
+	smiley = document.getElementById("smiley-img");
+	clock = document.getElementById("tick");
+	bomb = document.getElementById("no-bomb");
+	board = document.getElementById("board");
+	td = document.getElementsByTagName("td");
+	rowsIntoCols = ms.rows * ms.cols;   
+	colors = ["blue","green","red","brown","yellow","violet","chocolate","orange"];
+
 	//generate board
 	(function generateTable(){
 	    var i,j,k=0;
@@ -133,6 +128,7 @@
 			planted[planted.length] = random;
 		    }
 		}
+		console.log("planted mines: "+planted);
 	    },
 	    timer :function(op){
 		var tick = 0;
@@ -205,6 +201,7 @@
 			}
 		    }
 		} //end of value calculation
+		console.log("values: "+values);
 	    },
 	    explodeMines : function(id){
 		var z,mine;
