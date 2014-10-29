@@ -1,8 +1,9 @@
-(function(){
+(function startGame(){
     var minesweeper = {
 	rows:10,
 	cols:10,
 	bombs:8,
+	inter:0,
 	values:[]
     };
  
@@ -11,9 +12,13 @@
     
     (function initUI (){
 	//variables required for UI
-	var i,j,k=0;
+	var i,j,k=0,smiley;
 	var html="<table id='blocks'>";
 
+	//set happy smiley
+	smiley = document.getElementById("smiley-img");
+	smiley.setAttribute("src","images/smiling.png");
+	document.getElementById("tick").textContent = "0";
 	//To display blocks
 	for(i=0;i<minesweeper.rows;i+=1){
 	    html += "<tr>";
@@ -36,8 +41,8 @@
     //click on block
     
     function clickTd (){
-	var td = document.getElementsByTagName("td");
-	var planted = [],initFlag = false,inter,smiley = document.getElementById("smiley-img");
+	var td = document.getElementsByTagName("td"),openBlocks=0;
+	var planted = [],initFlag = false,smiley = document.getElementById("smiley-img");
 
 	//randomly plant bomb
 	function plantBombs (id) {
@@ -67,6 +72,8 @@
 	    var mine,currentNode,pos,upTd,downTd,clickedNode,i,j,z;
 	    var tick=0,ticker = document.getElementById("tick");
 	    var nodeValue,leftNode,rightNode;
+	    console.log("opened blocks: "+openBlocks);
+	    smiley.setAttribute("src","images/smiling.png");
 	    
 	    clickedNode = this.getAttribute("id");
 	    clickedNode = parseInt(clickedNode,10);
@@ -79,13 +86,13 @@
 		initFlag = true;
 
 		//timer starts
-		inter  = setInterval(function(){
+		minesweeper.inter = setInterval(function(){
 		tick += 1;
 		if(tick<=999){
 		    ticker.innerHTML = tick;
 		}
 		else{
-		    clearInterval(inter);
+		    clearInterval(minesweeper.inter);
 		}
 	  
 		},1000);
@@ -159,9 +166,10 @@
 		    mine.innerHTML = "<img src='images/bomb.png' width='16px'>";
 		}
 		for(var i=0;i<td.length;i+=1){
-		    td[i].removeEventListener('click', playGame, false);
+		    td[i].removeEventListener('mousedown', surprise, false);
+		    td[i].removeEventListener('mouseup', playGame,false);
 		}
-		clearInterval(inter); // stopping timer
+		clearInterval(minesweeper.inter); // stopping timer
 		smiley.setAttribute("src","images/sad.png");
 		//lost game
 		return false;
@@ -174,13 +182,14 @@
 	    if(nodeValue !== 0 && planted.indexOf(clickedNode) === -1){
 		currentNode.classList.add("blank-block");
 		currentNode.innerHTML = "<b class='node-value'>"+nodeValue+"</b>";
+		openBlocks += 1;
 	    }
 	    else if(nodeValue === 0 && planted.indexOf(clickedNode) === -1){
 		//for blank spaces i.e value is 0
 		var visited = [];
 		var count=0; //recursion counter
 		
-		function traverse(k,thisNode,direction){
+		function traverse(k,thisNode){
 		
 		    var left,right,up,down,id,isMine;
 		    var upleft,downleft,upright,downright;
@@ -189,7 +198,7 @@
 		    if(visited.indexOf(k) !== -1){
 			return false;
 		    }
-
+		    
 		    left = thisNode.previousSibling;
 		    right = thisNode.nextSibling;
 		    up =  thisNode.parentNode.previousSibling;
@@ -199,8 +208,12 @@
 		    visited.push(k);
 		    nodeValue = minesweeper.values[k];
 
+		    thisNode.removeEventListener('mouseup', playGame, false);
+		    thisNode.removeEventListener('mousedown', surprise, false);
+
 		    if(nodeValue === 0 && isMine === -1){
 			thisNode.classList.add("blank-block");
+			openBlocks +=1;
 			if(left !== null){
 			    traverse(k-1, left);
 			}
@@ -239,6 +252,7 @@
 			}
 		    }
 		    else if(nodeValue !== 0 && isMine === -1){
+			openBlocks +=1;
 			thisNode.classList.add("blank-block");
 			thisNode.innerHTML = "<b class='node-value'>"+nodeValue+"</b>";
 		    }
@@ -250,16 +264,40 @@
 		console.log("recursion function called : " +count+ " times");
 		//end of blank spaces
 	    }
+
+	    if(openBlocks === ((minesweeper.rows * minesweeper.cols) - minesweeper.bombs)){
+		alert("Congrats!!! You WIN : " + openBlocks);
+	    }
 	    
 	};
+
+	function surprise(){
+		smiley.setAttribute("src","images/surprise.png");
+	}
 	
 	//attaching click listener
 	for(var i=0;i<td.length;i+=1){
-	    td[i].addEventListener('click', playGame, false);
+	    
+	    td[i].addEventListener('mousedown', surprise, false);
+
+	    td[i].addEventListener('mouseup', playGame, false);
+	    
 	}
+
 
     }
     
     clickTd();
 
+    function clickSmiley(){
+	//clear timer
+	clearInterval(minesweeper.inter);
+	startGame();	//becomes recursive very problematic	
+    }
+    
+    (function attachSmileyEvent(){
+	smiley = document.getElementById("smiley-img");
+	smiley.addEventListener('click', clickSmiley,false);
+    }()); 
+    
 }());
