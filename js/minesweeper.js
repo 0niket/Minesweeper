@@ -1,303 +1,321 @@
-(function startGame(){
-    var minesweeper = {
+(function(){
+
+    //ms represents the things wich can be changed by user
+    //using menu.
+    var ms = {
 	rows:10,
 	cols:10,
-	bombs:8,
-	inter:0,
-	values:[]
+	bombs:8
     };
- 
-   
-    //Draw board
+
+    var game,initFlag = false,explodeFlag=false;
     
-    (function initUI (){
-	//variables required for UI
-	var i,j,k=0,smiley;
-	var html="<table id='blocks'>";
+    game = initGame(); 
+    game.initUI(); //initialize UI
+    game.initMouseEvents();//initialize mouse events
 
-	//set happy smiley
-	smiley = document.getElementById("smiley-img");
-	smiley.setAttribute("src","images/smiling.png");
-	document.getElementById("tick").textContent = "0";
-	//To display blocks
-	for(i=0;i<minesweeper.rows;i+=1){
-	    html += "<tr>";
-	    for(j=0;j<minesweeper.cols;j+=1){
-		html += "<td id='"+k+"'  class='block'></td>";
-		k+=1;
-	    }
-	    html += "</tr>";
-	}
-	html += "</table>";
-	document.getElementById("board").innerHTML = html;
-	//end of display blocks
+    //mouse down function
+    function surprise(){
+	game.displaySmiley("surprise.png");
+    }
 
-	//display no of bombs
-	document.getElementById("no-bomb").innerHTML = minesweeper.bombs;
-	//end of display bombs
+    //mouse up function
+    function playGame(){
+	var id,clickedNode,numberFlag = false;
+	game.displaySmiley("smiling.png");
+	clickedNode = this;
+	id = clickedNode.getAttribute("id");
+	id = parseInt(id,10);
 
-    }());
-
-    //click on block
-    
-    function clickTd (){
-	var td = document.getElementsByTagName("td"),openBlocks=0;
-	var planted = [],initFlag = false,smiley = document.getElementById("smiley-img");
-
-	//randomly plant bomb
-	function plantBombs (id) {
-	    var max = (minesweeper.rows * minesweeper.cols)-1;
-	    var random;
-	    
-	    for(var j=0;j<minesweeper.bombs;j+=1){
-		random = Math.floor(Math.random() * max);
-				
-		//1.if random no already exist into planted array
-		//2.mines should not explode at 1st attempt
-		if(planted.indexOf(random) !== -1 || id === random){
-		    console.log("exist in array: "+random);
-		    j--; //to regenerate no. at same index
-		    continue;
-		}
-		else{
-		    planted[planted.length] = random;
-		}
-	    }
-	    
-	}
-	//end of randomly plant bomb
+	console.log("clicked node: "+id);
 	
-	//click callback function
-	var playGame = function (){
-	    var mine,currentNode,pos,upTd,downTd,clickedNode,i,j,z;
-	    var tick=0,ticker = document.getElementById("tick");
-	    var nodeValue,leftNode,rightNode;
-	    console.log("opened blocks: "+openBlocks);
-	    smiley.setAttribute("src","images/smiling.png");
-	    
-	    clickedNode = this.getAttribute("id");
-	    clickedNode = parseInt(clickedNode,10);
-	    
-	    console.log(clickedNode);
-		
-	    //mines should not explode at first attempt
-	    if(initFlag === false){
-		
-		initFlag = true;
+	//1.generate mines
+	//2.calculate values around mines
+	//condition : do this only for first attempt
+	if(initFlag === false){
+	    initFlag = true;
+	    game.timer(); //start timer
+	    game.plantBombs(id); //plant mines
+	    game.calcValues(); //calculating values around mines.
+	}
+	explodeFlag = game.explodeMines(id);
+	if(explodeFlag === true){
+	    game.timer("stop");
+	    console.log("mines exploded");
+	    return false;
+	}
 
-		//timer starts
-		minesweeper.inter = setInterval(function(){
-		tick += 1;
-		if(tick<=999){
-		    ticker.innerHTML = tick;
+	numberFlag = game.displayNumber(id,clickedNode);
+	
+	if(numberFlag === false){
+	    game.traverse(id,clickedNode);
+	}
+	game.win();
+    }
+    
+    //click smiley function
+    function clickSmiley(){
+	//clear timer
+	game.timer("stop");
+	//restart game function here	
+    }
+
+    function initGame(){
+	//private variables and functions
+	var inter,visited=[],tableHtml,smiley,clock,bomb,board,rowsIntoCols,td,colors,values = [],planted = [];
+	
+	tableHtml = "<table id='blocks'>";
+	smiley = document.getElementById("smiley-img");
+	clock = document.getElementById("tick");
+	bomb = document.getElementById("no-bomb");
+	board = document.getElementById("board");
+	td = document.getElementsByTagName("td");
+	rowsIntoCols = ms.rows * ms.cols;   
+	colors = ["blue","green","red","brown","yellow","violet","chocolate","orange"];
+
+	//generate board
+	(function generateTable(){
+	    var i,j,k=0;
+	    for(i=0;i<ms.rows;i+=1){
+		tableHtml += "<tr>";
+		for(j=0;j<ms.cols;j+=1){
+		    tableHtml += "<td id='"+k+"' class='block'></td>";
+		    k+=1;
 		}
-		else{
-		    clearInterval(minesweeper.inter);
+		tableHtml += "</tr>";
+	    }
+	    tableHtml += "</table>";
+	}());
+
+	return{
+	    initUI : function(){
+		board.innerHTML = tableHtml;
+		bomb.innerHTML = ms.bombs;
+		clock.innerHTML = "0";
+		this.displaySmiley("smiling.png");
+		console.log("UI initialized");
+	    },
+	    displaySmiley : function(img){
+		var path = "images/" + img;
+ 		smiley.setAttribute("src",path);
+	    },
+	    initMouseEvents : function(){
+		for(var i=0;i<td.length;i+=1){
+		    td[i].addEventListener("mousedown",surprise,false);
+		    td[i].addEventListener("mouseup",playGame,false);
 		}
-	  
+		smiley.addEventListener("click",clickSmiley,false);
+	    },
+	    removeMouseEvents : function(node){
+		node.removeEventListener("mousedown",surprise,false);
+		node.removeEventListener("mouseup",playGame,false);
+	    },
+	    plantBombs : function(id){
+		var max = rowsIntoCols-1;
+		var random;
+		
+		for(var j=0;j<ms.bombs;j+=1){
+		    random = Math.floor(Math.random() * max);
+		    
+		    //1.if random no already exist into planted array
+		    //2.mines should not explode at 1st attempt
+		    if(planted.indexOf(random) !== -1 || id === random){
+			console.log("exist in array or clicked node: "+random);
+			j--; //to regenerate no. at same index
+			continue;
+		    }
+		    else{
+			planted[planted.length] = random;
+		    }
+		}
+		console.log("planted mines: "+planted);
+	    },
+	    timer :function(op){
+		var tick = 0;
+		if(op === "stop"){
+		    clearInterval(inter);
+		    return false;
+		}
+		inter = setInterval(function(){
+		    if(tick <= 999){
+			tick += 1;
+			clock.innerHTML = tick;
+		    }
+		    else{
+			clearInterval(inter);
+		    }
 		},1000);
-		//timer ends
-
-		//plant mines
-		plantBombs(clickedNode);
-		console.log(planted);
-		//plant mines end
-
-
+	    },
+	    calcValues : function(){
+		var z,j,mine,pos,upTd,downTd,currentNode;
+		
 		//calculating value arround mines
-		for(z=0;z<(minesweeper.rows*minesweeper.cols);z+=1){
-		     minesweeper.values[z] = 0;
+		for(z=0;z<rowsIntoCols;z+=1){
+		     values[z] = 0;
 		 }
     
 		for(j=0;j<planted.length;j+=1){
-		    mine = document.getElementById(planted[j]);
+		    mine = planted[j];
+		    mine = td[mine];
 		    console.log(mine);
 
 		    if(mine.previousSibling !== null){
 			pos = planted[j] - 1;
-			minesweeper.values[pos] += 1;
+			values[pos] += 1;
 		    }
 
 		    if(mine.nextSibling !== null){
 			pos = planted[j] + 1;
-			minesweeper.values[pos] += 1;
+			values[pos] += 1;
 		    }
 
 		    if(mine.parentNode.previousSibling !== null){
-			upTd  = planted[j] - minesweeper.cols;
-			minesweeper.values[upTd] += 1; 
-			currentNode = document.getElementById(upTd);
+			upTd  = planted[j] - ms.cols;
+			values[upTd] += 1; 
+			currentNode = td[upTd];
 
 			if(currentNode.previousSibling !== null){
 			    pos = upTd - 1;
-			    minesweeper.values[pos] += 1;
+			    values[pos] += 1;
 			}
 
 			if(currentNode.nextSibling !== null){
 			    pos = upTd + 1;
-			    minesweeper.values[pos] += 1;
+			    values[pos] += 1;
 			}
 		    }
 
 		    if(mine.parentNode.nextSibling !== null){
-			downTd = planted[j] + minesweeper.cols;
-			minesweeper.values[downTd] += 1;
-			currentNode = document.getElementById(downTd);
+			downTd = planted[j] + ms.cols;
+			values[downTd] += 1;
+			currentNode = td[downTd];
 			
 			if(currentNode.previousSibling !== null){
 			    pos = downTd - 1;
-			    minesweeper.values[pos] += 1;
+			    values[pos] += 1;
 			}
 		
 			if(currentNode.nextSibling !== null){
 			    pos = downTd + 1;
-			    minesweeper.values[pos] += 1;
+			    values[pos] += 1;
 			}
 		    }
 		} //end of value calculation
-		console.log(minesweeper.values);
-	    }//end of mines should not explode at first attempt
-	    
-	    //explode mines
-	    if(planted.indexOf(clickedNode) !== -1){
-		for(z=0;z<planted.length;z+=1){
-		    mine = document.getElementById(planted[z]);
-		    mine.classList.add("blank-block");
-		    mine.innerHTML = "<img src='images/bomb.png' width='16px'>";
+		console.log("values: "+values);
+	    },
+	    explodeMines : function(id){
+		var z,mine;
+		if(planted.indexOf(id) !== -1){
+		    for(z=0;z<planted.length;z+=1){
+			mine = planted[z];
+			mine = td[mine];
+			mine.classList.add("blank-block");
+			mine.innerHTML = "<img src='images/bomb.png' width='16px'>";
+		    }
+		    for(z=0;z<td.length;z+=1){
+			this.removeMouseEvents(td[z]);
+			if(values[z] === 0){
+			    this.traverse(z,td[z]);
+			}
+			else{
+			    this.displayNumber(z,td[z]);
+			}
+		    }
+		    this.displaySmiley("sad.png");
+		    return true;
 		}
-		for(var i=0;i<td.length;i+=1){
-		    td[i].removeEventListener('mousedown', surprise, false);
-		    td[i].removeEventListener('mouseup', playGame,false);
-		}
-		clearInterval(minesweeper.inter); // stopping timer
-		smiley.setAttribute("src","images/sad.png");
-		//lost game
 		return false;
-	    }
-	    //explode mines end
-	    
-	    //clicked node has value other than 0
-	    nodeValue = minesweeper.values[clickedNode];
-	    currentNode = document.getElementById(clickedNode);
-	    if(nodeValue !== 0 && planted.indexOf(clickedNode) === -1){
-		currentNode.classList.add("blank-block");
-		currentNode.innerHTML = "<b class='node-value'>"+nodeValue+"</b>";
-		openBlocks += 1;
-	    }
-	    else if(nodeValue === 0 && planted.indexOf(clickedNode) === -1){
-		//for blank spaces i.e value is 0
-		var visited = [];
-		var count=0; //recursion counter
+	    },
+	    displayNumber : function(id,currentNode){
+		var nodeValue;
+		nodeValue = values[id];
+		if(nodeValue !== 0 && planted.indexOf(id) === -1){
+		    this.removeMouseEvents(currentNode);
+		    currentNode.classList.add("blank-block");
+		    currentNode.innerHTML = "<b class='node-value' style='color:"+
+		                            colors[nodeValue-1]+"'>"+nodeValue+"</b>";
+		    return true;
+		}
+		return false;
+	    },
+	    traverse : function(k,thisNode){
+		var left,right,up,down,id,isMine, upleft,downleft,upright,downright;
 		
-		function traverse(k,thisNode){
-		
-		    var left,right,up,down,id,isMine;
-		    var upleft,downleft,upright,downright;
-		    count+=1;
-		    
-		    if(visited.indexOf(k) !== -1){
-			return false;
-		    }
-		    
-		    left = thisNode.previousSibling;
-		    right = thisNode.nextSibling;
-		    up =  thisNode.parentNode.previousSibling;
-		    down = thisNode.parentNode.nextSibling;
-		    
-		    isMine = planted.indexOf(k);
-		    visited.push(k);
-		    nodeValue = minesweeper.values[k];
-
-		    thisNode.removeEventListener('mouseup', playGame, false);
-		    thisNode.removeEventListener('mousedown', surprise, false);
-
-		    if(nodeValue === 0 && isMine === -1){
-			thisNode.classList.add("blank-block");
-			openBlocks +=1;
-			if(left !== null){
-			    traverse(k-1, left);
-			}
-			if(right !== null){
-			    traverse(k+1, right);
-			}
-			if(up !== null){
-			    id = k - minesweeper.cols;
-			    up = document.getElementById(id);
-			    traverse(id, up);
-			}
-			if(down !== null){
-			    id = k + minesweeper.cols;
-			    down = document.getElementById(id);
-			    traverse(id, down);
-			}
-			if(up !== null && left !== null){
-			    id = (k-minesweeper.cols)-1;
-			    upleft = document.getElementById(id);
-			    traverse(id,upleft);
-			}
-			if(up !== null && right !== null){
-			    id = (k-minesweeper.cols)+1;
-			    upright = document.getElementById(id);
-			    traverse(id,upright);
-			}
-			if(down !== null && left !== null){
-			    id = (k+minesweeper.cols)-1;
-			    downleft = document.getElementById(id);
-			    traverse(id,downleft);
-			}
-			if(down !== null && right !== null){
-			    id = (k+minesweeper.cols)+1;
-			    downright = document.getElementById(id);
-			    traverse(id,downright);
-			}
-		    }
-		    else if(nodeValue !== 0 && isMine === -1){
-			openBlocks +=1;
-			thisNode.classList.add("blank-block");
-			thisNode.innerHTML = "<b class='node-value'>"+nodeValue+"</b>";
-		    }
-		    
+		if(visited.indexOf(k) !== -1){
 		    return false;
 		}
+		
+		left = thisNode.previousSibling;
+		right = thisNode.nextSibling;
+		up =  thisNode.parentNode.previousSibling;
+		down = thisNode.parentNode.nextSibling;
+		
+		isMine = planted.indexOf(k);
+		visited.push(k);
+		nodeValue = values[k];
 
-		traverse(clickedNode,currentNode);
-		console.log("recursion function called : " +count+ " times");
-		//end of blank spaces
-	    }
+		this.removeMouseEvents(thisNode);
 
-	    if(openBlocks === ((minesweeper.rows * minesweeper.cols) - minesweeper.bombs)){
-		alert("Congrats!!! You WIN : " + openBlocks);
+		if(nodeValue === 0 && isMine === -1){
+		    thisNode.classList.add("blank-block");
+		   
+		    if(left !== null){
+			this.traverse(k-1, left);
+		    }
+		    if(right !== null){
+			this.traverse(k+1, right);
+		    }
+		    if(up !== null){
+			id = k - ms.cols;
+			this.traverse(id, td[id]);
+		    }
+		    if(down !== null){
+			id = k + ms.cols;
+			this.traverse(id, td[id]);
+		    }
+		    if(up !== null && left !== null){
+			id = (k-ms.cols)-1;
+			this.traverse(id,td[id]);
+		    }
+		    if(up !== null && right !== null){
+			id = (k-ms.cols)+1;
+			this.traverse(id,td[id]);
+		    }
+		    if(down !== null && left !== null){
+			id = (k+ms.cols)-1;
+			this.traverse(id,td[id]);
+		    }
+		    if(down !== null && right !== null){
+			id = (k+ms.cols)+1;
+			this.traverse(id,td[id]);
+		    }
+		}
+		else if(nodeValue !== 0 && isMine === -1){
+		    this.displayNumber(k,thisNode);
+		}
+		
+		return true;
+	    },
+	    win : function(){
+		var nodeClass,count=0,i,node;
+		for(i=0;i<td.length;i+=1){
+		    nodeClass = td[i].classList[1];
+		    if(nodeClass === undefined){
+			count+=1;
+		    }
+		}
+		if(count === ms.bombs){
+		    this.displaySmiley("king.png");
+		    for(i=0;i<planted.length;i+=1){
+			node = planted[i];
+			node = td[node];
+			node.innerHTML = "<img src='images/flag.png' width='16px' />";
+			this.removeMouseEvents(node);
+		    }
+		    this.timer("stop");
+		}
 	    }
-	    
 	};
-
-	function surprise(){
-		smiley.setAttribute("src","images/surprise.png");
-	}
-	
-	//attaching click listener
-	for(var i=0;i<td.length;i+=1){
-	    
-	    td[i].addEventListener('mousedown', surprise, false);
-
-	    td[i].addEventListener('mouseup', playGame, false);
-	    
-	}
-
-
     }
-    
-    clickTd();
 
-    function clickSmiley(){
-	//clear timer
-	clearInterval(minesweeper.inter);
-	startGame();	//becomes recursive very problematic	
-    }
-    
-    (function attachSmileyEvent(){
-	smiley = document.getElementById("smiley-img");
-	smiley.addEventListener('click', clickSmiley,false);
-    }()); 
-    
 }());
