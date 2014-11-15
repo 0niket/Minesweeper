@@ -13,7 +13,9 @@
 		sad: "sad.png",
 		bomb: "bomb.png",
 		flag: "flag.png",
-		king: "king.png"
+		king: "king.png",
+		explosion: "exploding.png",
+		crossbomb: "crossbomb.png"
 	    },
 	    colors: ["blue","green","red","brown","yellow","violet","chocolate","orange"]
 	};
@@ -161,7 +163,7 @@
 		    }
 		    
 		    //if mines explode then stop the game
-		    game.data.hasExploded = game.controllers.explodeMines(id); 
+		    game.controllers.explodeMines(id); 
 		    if (game.data.hasExploded === true) {
 			console.log("mines exploded");
 			return false;
@@ -371,7 +373,7 @@
 				    array[downTd - 1].value += 1;
 				}    
 				//incrementing value of south-east node
-				if (currentNode.nextElementSibling !== null && array[downTd + 1].value !== -1) {					
+				if (currentNode.nextElementSibling !== null && array[downTd + 1].value !== -1) {
 				    array[downTd + 1].value += 1;					
 				}
 				
@@ -387,12 +389,13 @@
 
 		    if (node.value === -1 && node.isFlag === false) {
 			game.ui.clickedMine(node.cell);
+			game.data.hasExploded = true;
 			//display each & every mine
 			game.data.tiles.forEach(function (element, index, array) {
 			    if (element.value === -1 && element.isFlag === false) {
 				mine = element.cell;
 				game.ui.exploreNode(mine);
-				game.ui.setNodeImage(mine, game.data.ms.path + game.data.ms.images.bomb);
+				game.ui.setNodeImage(mine, game.data.ms.path + game.data.ms.images.explosion);
 			    }
 			    else {
 				game.controllers.traverse(index, element.cell);
@@ -407,22 +410,19 @@
 		    }
 		    return false;
 		},
-		displayNumber: function (id, currentNode) {
-		    var nodeValue, node;
-		    node = game.data.tiles[id];
-		    nodeValue = node.value;
-		    if (nodeValue !== 0 && nodeValue !== -1 && node.isFlag === false) {
-			game.controllers.removeMouseEvents(id);
-			game.ui.exploreNode(currentNode, nodeValue);
-			return true;
-		    }
-		    return false;
-		},
-		traverse : function (k, thisNode) {
+		traverse: function (k, thisNode) {
 		    var left, right, up, down, id;
 		    
 		    //already visited this node 
-		    if (game.data.tiles[k].isVisited === true || game.data.tiles[k].isFlag === true) {
+		    if (game.data.tiles[k].isVisited === true || game.data.tiles[k].value === -1 ) {
+			return false;
+		    }
+
+		    if (game.data.tiles[k].isFlag === true) {
+			if (game.data.hasExploded === true) {
+			    game.ui.exploreNode(thisNode);
+			    game.ui.setNodeImage(thisNode, game.data.ms.path + game.data.ms.images.crossbomb);
+			}
 			return false;
 		    }
 		    
@@ -437,7 +437,7 @@
 		    //remove mouse events because node is visited
 		    game.controllers.removeMouseEvents(k);
 
-		    if(nodeValue === 0 && nodeValue !== -1) {
+		    if(nodeValue === 0) {
 			
 			//for blank nodes
 			game.ui.exploreNode(thisNode, nodeValue);
@@ -480,9 +480,10 @@
 			    game.controllers.traverse(id, game.data.tiles[id].cell);
 			}
 
-		    } else if (nodeValue !== 0 && nodeValue !== -1) {
+		    } 
+		    else {
 			//current node is numbered tile 
-			game.controllers.displayNumber(k, thisNode);
+			game.ui.exploreNode(thisNode, nodeValue);
 		    }
 		    
 		    return true;
