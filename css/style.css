@@ -49,3 +49,9 @@ td{
     padding:4px 4px;
     font-size:16px;
 }
+
+.red-block{
+    border: none;
+    background: red;
+    padding: 4px 4px;
+}

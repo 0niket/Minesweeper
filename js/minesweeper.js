@@ -53,10 +53,14 @@
 		setNodeImage: function(node, img) {
 		    node.innerHTML = "<img src='"+img+"' width='16px' />";
 		},
+		//turn clicked bomb background to red
+		clickedMine: function(node) {
+		    node.classList.add("red-block");
+		},
 		//Sets background and displays value of node except -1 and 0
 		exploreNode: function(node, no) {
 		    node.classList.add("blank-block");
-		    if (no !== 0 && no !== -1) {
+		    if (no > 0) {
 			node.innerHTML =  "<b class='node-value' style='color:"+
 		                            game.data.ms.colors[no-1]+"'>"+no+"</b>";
 		    }
@@ -382,10 +386,10 @@
 		    node = game.data.tiles[id];
 
 		    if (node.value === -1 && node.isFlag === false) {
-			
+			game.ui.clickedMine(node.cell);
 			//display each & every mine
 			game.data.tiles.forEach(function (element, index, array) {
-			    if (element.value === -1) {
+			    if (element.value === -1 && element.isFlag === false) {
 				mine = element.cell;
 				game.ui.exploreNode(mine);
 				game.ui.setNodeImage(mine, game.data.ms.path + game.data.ms.images.bomb);
