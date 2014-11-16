@@ -12,8 +12,19 @@ td {
     border-radius: 5px;
     -webkit-border-radius: 5px;
     position: absolute;
-    top: 20%;
-    left: 38%
+    top: 12%;
+}
+
+.game-level1 {
+    left: 38%;
+}
+
+.game-level2 {
+    left: 31%;
+}
+
+.game-level3 {
+    left: 15%;
 }
 
 #status {
@@ -37,8 +48,16 @@ td {
     border-right: 3px solid darkgray;
 }
 
-.smiley-space {
+.smiley-space1 {
     margin-left: 26%;
+}
+
+.smiley-space2 {
+    margin-left: 34%;
+}
+
+.smiley-space3 {
+    margin-left:41%;
 }
 
 .blank-block {
@@ -59,7 +78,7 @@ td {
 }
 .menu {
     position: absolute;
-    top: 5%;
+    top: 1%;
     left: 37%;
     padding: 15px;
     width: 340px;

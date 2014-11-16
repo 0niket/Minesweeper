@@ -23,13 +23,92 @@
 	return {
 	    getObject: function () {  //to provide security to ms object 
 		return ms;
-	    }
+	    },
+	    setObject: function (rows, cols, bombs) { //set variables of game using menu
+		ms.rows = rows;
+		ms.cols = cols;
+		ms.bombs = bombs;
+	    } 
 	};
     }
-
-
-    var start = initGame();
+    
+    var start;
+    start = initGame();
     start.initUI();
+    start.initEvents();
+
+    // change UI and game variables as per selected level
+    (function gameMenu() {
+	var level1, level2, level3, smiley, clock, game, ms;
+	
+	level1 = document.getElementById("beginner");
+	level2 = document.getElementById("intermediate");
+	level3 = document.getElementById("expert");
+
+	smiley = document.getElementById("smiley-img");
+	clock = document.getElementById("clock-img");
+
+	game = document.getElementById("game");
+
+	ms = gameObject();
+
+	function beginnerSelected() {
+	    ms.setObject(10,10,8);
+	    
+	    game.classList.add("game-level1");
+	    game.classList.remove("game-level2");
+	    game.classList.remove("game-level3");
+
+	    smiley.classList.remove("smiley-space2");
+	    smiley.classList.add("smiley-space1");
+	    smiley.classList.remove("smiley-space3");
+	    
+	    clock.classList.remove("smiley-space2");
+	    clock.classList.add("smiley-space1");
+	    clock.classList.remove("smiley-space3");
+	    
+	    start.initUI(ms.getObject());
+	}
+
+	function intermediateSelected() {
+	    ms.setObject(16,16,40);
+
+	    game.classList.add("game-level2");
+	    game.classList.remove("game-level3");
+
+	    smiley.classList.add("smiley-space2");
+	    smiley.classList.remove("smiley-space1");
+	    smiley.classList.remove("smiley-space3");
+	    
+	    clock.classList.add("smiley-space2");
+	    clock.classList.remove("smiley-space1");
+	    clock.classList.remove("smiley-space3");
+
+	    start.initUI(ms.getObject());
+	}
+	
+	function expertSelected() {
+	    ms.setObject(16,30,99);
+	    
+	    game.classList.remove("game-level2");
+	    game.classList.add("game-level3");
+
+	    smiley.classList.remove("smiley-space2");
+	    smiley.classList.remove("smiley-space1");
+	    smiley.classList.add("smiley-space3");
+
+	    clock.classList.remove("smiley-space2");
+	    clock.classList.remove("smiley-space1");
+	    clock.classList.add("smiley-space3");
+	    
+	    start.initUI(ms.getObject());
+	}
+	
+	level1.addEventListener("click", beginnerSelected, false);
+	level2.addEventListener("click", intermediateSelected, false);
+	level3.addEventListener("click", expertSelected, false);
+
+    }());
 
     function initGame() {
 	
@@ -38,7 +117,7 @@
 	game = {
 	    data: {
 		tiles: [],
-		ms: gameObject().getObject(),
+		ms: undefined,
 		table: document.getElementById("blocks"),
 		smiley: document.getElementById("smiley-img"),
 		clock: document.getElementById("tick"),
@@ -76,23 +155,19 @@
 
 		    var tdTemplate, tempTdTemplate, trTemplate, startIndex, finishIndex;
 		    
-		    game.data.template = game.data.table.innerHTML;
-
-		    startIndex = game.data.template.indexOf("<td",0);
-		    finishIndex = game.data.template.indexOf("/td>",startIndex);
+		    game.data.template = "<tr>" +
+                                              "<td id='{id}' class='block'></td>" +
+                                         "</tr>";
 		  
-
 		    //Extracting td out of html content
-		    tdTemplate = game.data.template.slice(startIndex, finishIndex+4);
+		    tdTemplate = "<td id='{id}' class='block'></td>";
 		    tempTdTemplate = tdTemplate;
 
-
-		    //generate table cols. and replace {col} part of id
+		    //generate table cols
 		    tdTemplate = tdTemplate.replace(tdTemplate, function () {
 			var tempTemplate = "";
 			for (var tdIndex = 0; tdIndex < game.data.ms.cols; tdIndex += 1) {
 			    tempTemplate += "\n\t\t\t" + tdTemplate; 
-			    tempTemplate = tempTemplate.replace("{col}",tdIndex);
 			}
 			return tempTemplate;
 		    });
@@ -103,16 +178,12 @@
 
 		    //generate table rows and replace {row} part of id
 		    game.data.template = trTemplate.replace(trTemplate, function () {
-			var tempTemplate="";
+			var tempTemplate="", id=0;
 			for (var trIndex = 0; trIndex < game.data.ms.rows; trIndex += 1) {
 			    tempTemplate += trTemplate;
 			    for (var tdIndex = 0; tdIndex < game.data.ms.cols; tdIndex += 1){
-				if (trIndex == 0) {
-				    tempTemplate = tempTemplate.replace("{row}","");
-				}
-				else {
-				    tempTemplate = tempTemplate.replace("{row}",trIndex);
-				}
+				tempTemplate = tempTemplate.replace("{id}",id);
+				id += 1;
 			    }
 			}
 			return tempTemplate;
@@ -523,19 +594,30 @@
 	};
 
 	return {
-	    initUI: function() {
-
+	    initUI: function(ms) {
+		if (ms === undefined) {
+		    game.data.ms = gameObject().getObject();
+		}
+		else {
+		    game.data.ms = ms;
+		    console.log(game.data.ms);
+		}
 		game.ui.generateTable();
 		game.data.table.innerHTML = game.data.template;
 		game.data.bomb.innerHTML = game.data.ms.bombs;
 		game.data.clock.innerHTML = "0";
 		game.data.smiley.setAttribute("src", game.data.ms.path + game.data.ms.images.smiling);
+		game.data.isInitialized = false;
+		game.data.hasExploded = false;
+		game.data.tiles = [];
 		game.data.bombs = game.data.ms.bombs;
 		game.data.rowsIntoCols = game.data.ms.rows * game.data.ms.cols;
-		game.controllers.initMouseEvents();
 		game.controllers.addToTiles();
-		console.log("UI initialized");
-		
+		console.log(game.data.ms);
+		console.log("UI initialized");		
+	    },
+	    initEvents: function() {
+		game.controllers.initMouseEvents();
 	    }
 	};
 	

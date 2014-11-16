@@ -7,26 +7,24 @@
 <body>
    <div class="menu">
     <b>Levels :</b>
-      <input type="radio" name="level" value="level1" checked="checked"> Beginner 
-      <input type="radio" name="level" value="level2"> Intermediate 
-      <input type="radio" name="level" value="level3"> Expert 
+      <input id="beginner" type="radio" name="level" value="level1" checked="checked"> Beginner 
+      <input id="intermediate" type="radio" name="level" value="level2"> Intermediate 
+      <input id="expert" type="radio" name="level" value="level3"> Expert 
    </div>
-   <div id="game">
+   <div id="game" class="game-level1">
      <div id="status">
        <img id="bomb-img" src="images/bomb.png"><span id="no-bomb"></span>
-       <img id="smiley-img" class="smiley-space" src="images/smiling.png">
-       <img id="clock-img" class="smiley-space" src="images/clock.png"><span id="tick">0</span>
+       <img id="smiley-img" class="smiley-space1" src="images/smiling.png">
+       <img id="clock-img" class="smiley-space1" src="images/clock.png"><span id="tick">0</span>
      </div>
      <div id="board">
        <table>
 	 <tbody id="blocks">
-	   <tr>
-	     <td id="{row}{col}" class="block"></td>
-	   </tr>
 	 </tbody>
        </table>
      </div>
    </div> 
+ 
 <script src="js/minesweeper.js"></script>
 </body>
 </html>
