@@ -628,10 +628,7 @@
 		game.controllers.initMouseEvents();
 	    },
 	    resetTimer: function() {
-		var inter = game.data.inter;
-		clearInterval(inter);
-		game.controllers.timer("stop");
-		console.log(game.data.ms);
+		clearInterval(game.data.inter);
 	    }
 	};
 	
