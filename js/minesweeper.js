@@ -67,12 +67,14 @@
 	    clock.classList.add("smiley-space1");
 	    clock.classList.remove("smiley-space3");
 	    
+	    start.resetTimer();
 	    start.initUI(ms.getObject());
 	}
 
 	function intermediateSelected() {
 	    ms.setObject(16,16,40);
 
+	    game.classList.remove("game-level1");
 	    game.classList.add("game-level2");
 	    game.classList.remove("game-level3");
 
@@ -83,13 +85,15 @@
 	    clock.classList.add("smiley-space2");
 	    clock.classList.remove("smiley-space1");
 	    clock.classList.remove("smiley-space3");
-
+	    
+	    start.resetTimer();
 	    start.initUI(ms.getObject());
 	}
 	
 	function expertSelected() {
 	    ms.setObject(16,30,99);
 	    
+	    game.classList.remove("game-level1");
 	    game.classList.remove("game-level2");
 	    game.classList.add("game-level3");
 
@@ -101,6 +105,7 @@
 	    clock.classList.remove("smiley-space1");
 	    clock.classList.add("smiley-space3");
 	    
+	    start.resetTimer();
 	    start.initUI(ms.getObject());
 	}
 	
@@ -127,6 +132,7 @@
 		bombs: 0,
 		isInitialized: false,
 		hasExploded: false,
+		isTimeOver: false,
 		rowsIntoCols: 0 
 	    },
 	    ui: {
@@ -253,6 +259,7 @@
 		    game.data.smiley.setAttribute("src", game.data.ms.path + game.data.ms.images.smiling);
 		    game.data.isInitialized = false;
 		    game.data.hasExploded = false;
+		    game.data.isTimeOver = false;
 		    game.data.tiles = [];
 		    game.controllers.addToTiles();
 		    game.data.bombs = game.data.ms.bombs;
@@ -325,7 +332,7 @@
 				 id = target.getAttribute("id");
 				 id = parseInt(id, 10);
 				 if (btnCode === 2) {
-				     if (game.data.tiles[id].isVisited === false && game.data.hasExploded === false) {
+				     if (game.data.tiles[id].isVisited === false && game.data.hasExploded === false && game.data.isTimeOver === false) {
 					 game.controllers.flagNode(target, id);
 				     }
 				 }
@@ -388,6 +395,7 @@
 			    game.data.tiles.forEach(function (element, index) {
 				game.controllers.removeMouseEvents(index);
 			    });
+			    game.data.isTimeOver = true;
 			}
 		    }, 1000);
 		},
@@ -600,7 +608,6 @@
 		}
 		else {
 		    game.data.ms = ms;
-		    console.log(game.data.ms);
 		}
 		game.ui.generateTable();
 		game.data.table.innerHTML = game.data.template;
@@ -609,6 +616,7 @@
 		game.data.smiley.setAttribute("src", game.data.ms.path + game.data.ms.images.smiling);
 		game.data.isInitialized = false;
 		game.data.hasExploded = false;
+		game.data.isTimeOver = false;
 		game.data.tiles = [];
 		game.data.bombs = game.data.ms.bombs;
 		game.data.rowsIntoCols = game.data.ms.rows * game.data.ms.cols;
@@ -618,6 +626,12 @@
 	    },
 	    initEvents: function() {
 		game.controllers.initMouseEvents();
+	    },
+	    resetTimer: function() {
+		var inter = game.data.inter;
+		clearInterval(inter);
+		game.controllers.timer("stop");
+		console.log(game.data.ms);
 	    }
 	};
 	
