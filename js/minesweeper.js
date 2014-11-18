@@ -17,7 +17,7 @@
 		explosion: "exploding.png",
 		crossbomb: "crossbomb.png"
 	    },
-	    colors: ["blue","green","red","brown","yellow","violet","chocolate","orange"]
+	    colors: ["blue","green","red","purple","maroon","cyan","black","grey"]
 	};
 	
 	return {
