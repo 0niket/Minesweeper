@@ -6,6 +6,12 @@ td {
     width: 20px;
     height: 20px;
 }
+
+.ext_links {
+    color: brown;
+    float: right;
+    padding: 20px;
+}
       
 #game {
     border: 20px solid black;
