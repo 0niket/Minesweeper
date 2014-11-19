@@ -1,5 +1,5 @@
 (function () {
-
+   
     function gameObject() {
 	//ms represents constants used in game and variables that can be manipulated through menu
 	var ms = {
@@ -31,6 +31,20 @@
 	    } 
 	};
     }
+
+    //preload all images for better gameplay.
+    function preloadImages() {
+	var img = [], width = 16, ms;
+	ms = gameObject().getObject();
+	for (var image in ms.images) {
+	    if( ms.images.hasOwnProperty( image ) ) {
+		img[image] = new Image(width);
+		img[image].src = ms.path + ms.images[image];
+	    } 
+	}
+    }
+
+    window.onload = preloadImages;
     
     var start;
     start = initGame();
@@ -58,7 +72,7 @@
 	    game.classList.add("game-level1");
 	    game.classList.remove("game-level2");
 	    game.classList.remove("game-level3");
-
+	    
 	    smiley.classList.remove("smiley-space2");
 	    smiley.classList.add("smiley-space1");
 	    smiley.classList.remove("smiley-space3");
@@ -225,9 +239,8 @@
 		},
 		//executes all game functions on mouse up  
 		clickToPlay: function(target, id){
-		    
+		
 		    game.data.smiley.setAttribute("src", game.data.ms.path + game.data.ms.images.smiling);
-		    console.log("clicked node: " +id);
 
 		    //1.generate mines
 		    //2.calculate values around mines
@@ -242,7 +255,6 @@
 		    //if mines explode then stop the game
 		    game.controllers.explodeMines(id); 
 		    if (game.data.hasExploded === true) {
-			console.log("mines exploded");
 			return false;
 		    }
 		    
@@ -263,7 +275,6 @@
 		    game.data.tiles = [];
 		    game.controllers.addToTiles();
 		    game.data.bombs = game.data.ms.bombs;
-		    console.log("reset game");
 		},
 		//add or remove flag node on right click
 		flagNode: function(node, id) {
@@ -288,7 +299,6 @@
 		    }
 
 		    game.data.bomb.innerHTML = game.data.bombs;
-		    console.log("flaged node : " +id);
 		},
 		//initialize all the mouse events
 		initMouseEvents: function() {
@@ -333,12 +343,21 @@
 				 id = parseInt(id, 10);
 				 if (btnCode === 2) {
 				     if (game.data.tiles[id].isVisited === false && game.data.hasExploded === false && game.data.isTimeOver === false) {
+					 var start = +new Date();  // log start timestamp
 					 game.controllers.flagNode(target, id);
+					 var end =  +new Date();  // log end timestamp
+					 var diff = end - start;
+					 console.log(diff);
+					
 				     }
 				 }
 				 else {
 				     if (game.data.tiles[id].eventAttached === true) {
+					 var start = +new Date();  // log start timestamp
 					 game.controllers.clickToPlay(target, id);
+					 var end =  +new Date();  // log end timestamp
+					 var diff = end - start;
+					 console.log(diff);
 				     } 
 				 }
 			     }
@@ -363,15 +382,12 @@
 			//1.if random no already exist into planted array
 			//2.mines should not explode at 1st attempt
 			if (game.data.tiles[random].value === -1 || id === random) {
-			    console.log("exist in datastructure or clicked node: " +random);
 			    currentBomb -= 1; //to regenerate no. at same index
 			}
 			else {
 			    game.data.tiles[random].value = -1;
-			    console.log("mine: " +random);
 			}
 		    }
-		    console.log("mines planted");
 		},
 		timer: function(op) {
 
@@ -407,7 +423,6 @@
 			
 			if (element.value === -1) {
 			    mine = element.cell;
-			    console.log(mine);
 			  
 			    //incrementing value of west node 
 			    if (mine.previousElementSibling !== null && array[index-1].value !== -1) {
@@ -459,7 +474,6 @@
 			    }
 			}
 		    });
-		    console.log("values around mines are calculated: ");
 		},
 		explodeMines: function (id) {
 		    //check if clicked node is mine
@@ -620,9 +634,7 @@
 		game.data.tiles = [];
 		game.data.bombs = game.data.ms.bombs;
 		game.data.rowsIntoCols = game.data.ms.rows * game.data.ms.cols;
-		game.controllers.addToTiles();
-		console.log(game.data.ms);
-		console.log("UI initialized");		
+		game.controllers.addToTiles();		
 	    },
 	    initEvents: function() {
 		game.controllers.initMouseEvents();
