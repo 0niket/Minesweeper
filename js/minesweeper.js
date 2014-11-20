@@ -28,9 +28,14 @@
 		ms.rows = rows;
 		ms.cols = cols;
 		ms.bombs = bombs;
+		return ms;
 	    } 
 	};
     }
+
+    
+    var start;
+    start = initGame();
 
     //preload all images for better gameplay.
     function preloadImages() {
@@ -42,15 +47,13 @@
 		img[image].src = ms.path + ms.images[image];
 	    } 
 	}
+	//start begginer level game automatically
+	start.initUI(ms);
+	start.initEvents();
     }
 
     window.onload = preloadImages;
     
-    var start;
-    start = initGame();
-    start.initUI();
-    start.initEvents();
-
     // change UI and game variables as per selected level
     (function gameMenu() {
 	var level1, level2, level3, smiley, clock, game, ms;
@@ -67,7 +70,7 @@
 	ms = gameObject();
 
 	function beginnerSelected() {
-	    ms.setObject(10,10,8);
+	   var ob = ms.setObject(10,10,8);
 	    
 	    game.classList.add("game-level1");
 	    game.classList.remove("game-level2");
@@ -82,11 +85,11 @@
 	    clock.classList.remove("smiley-space3");
 	    
 	    start.resetTimer();
-	    start.initUI(ms.getObject());
+	    start.initUI(ob);
 	}
 
 	function intermediateSelected() {
-	    ms.setObject(16,16,40);
+	    var ob = ms.setObject(16,16,40);
 
 	    game.classList.remove("game-level1");
 	    game.classList.add("game-level2");
@@ -101,11 +104,11 @@
 	    clock.classList.remove("smiley-space3");
 	    
 	    start.resetTimer();
-	    start.initUI(ms.getObject());
+	    start.initUI(ob);
 	}
 	
 	function expertSelected() {
-	    ms.setObject(16,30,99);
+	    var ob = ms.setObject(16,30,99);
 	    
 	    game.classList.remove("game-level1");
 	    game.classList.remove("game-level2");
@@ -120,7 +123,7 @@
 	    clock.classList.add("smiley-space3");
 	    
 	    start.resetTimer();
-	    start.initUI(ms.getObject());
+	    start.initUI(ob);
 	}
 	
 	level1.addEventListener("click", beginnerSelected, false);
@@ -214,9 +217,13 @@
 	    },
 	    controllers: {
 		//Data structure for each tile
-		Tile: function(value, cell, isFlag, isVisited, eventAttached) {
+		Tile: function(value, cell, left, right, up, down, isFlag, isVisited, eventAttached) {
 		    this.value = value;
 		    this.cell = cell;
+		    this.left = left;
+		    this.right = right;
+		    this.up = up;
+		    this.down = down;
 		    this.isFlag = isFlag;
 		    this.isVisited = isVisited;
 		    this.eventAttached = eventAttached;
@@ -224,14 +231,47 @@
 		},
 		//Adds data structure of each tile to array called tiles
 		addToTiles: function() {
-		    var td, tempTile;
+		    var td, tempTile, length = 0, node, left, right, up, down;
 		    td = document.getElementsByTagName("td");
 
 		    while (game.data.tiles.length < game.data.rowsIntoCols) {
-			tempTile = new game.controllers.Tile(0, td[game.data.tiles.length], false, false, true); 
-			game.data.tiles[game.data.tiles.length] = tempTile;
-		    }
+			length = game.data.tiles.length;
 
+			node = [];
+
+			node[0] = td[length];//node
+			
+			left = node[0].previousElementSibling;
+			right = node[0].nextElementSibling;
+			up = node[0].parentNode.previousElementSibling;
+			down = node[0].parentNode.nextElementSibling;
+			
+			
+			if (left !== null) {
+			    node[1] = td[length - 1];//left
+			}
+			if (right !== null) {
+			    node[2] = td[length + 1];//right
+			}
+			if (up !== null) {
+			    node[3] = td[length - game.data.ms.cols];//up
+			}
+			if (down !== null) {
+			    node[4] = td[length + game.data.ms.cols];//down
+			}
+			
+			
+			tempTile = new game.controllers.Tile(0
+							     ,node[0]
+							     ,node[1]
+							     ,node[2]
+							     ,node[3]
+							     ,node[4]
+							     ,false
+							     ,false
+							     ,true); 
+			game.data.tiles[length] = tempTile;
+		    }
 		},
 		//Displays surprise smiley on mouse down
 		surprise: function() {
@@ -307,27 +347,23 @@
 			e.preventDefault();
 		    }, false);
 		    
-		    //Event is only attached to parent node 
-		    //through event bubbling it finds the clicked node
-		    //calls the surprise functoin
 		    game.data.table.addEventListener("mousedown", function (e) {
-			var id,target;
+			var target;
 			e = e || window.event;
 			target = e.target;
-			
-			while (target !== game.data.table) {
-			    if (target.nodeName === "TD") {
-				id = target.getAttribute("id");
-				id = parseInt(id, 10);
-				if (game.data.tiles[id].eventAttached === true) {
-				    game.controllers.surprise();
-				} 
-			    }
-			    target = target.parentNode;
+
+			if(target && target.nodeName === "TD") {
+			    id = target.getAttribute("id");
+			    id = parseInt(id, 10);
+			    if (game.data.tiles[id].eventAttached === true) {
+				game.controllers.surprise();
+			    } 
 			}
 			
 		    }, false);
 		    
+		    //Event is only attached to parent node 
+		    //through event bubbling it finds the clicked node
 		    //if user clicks left click then executes clicktoplay func
 		    //otherwise it excutes flagNode function
 		    game.data.table.addEventListener("mouseup", function (e) {
@@ -343,21 +379,12 @@
 				 id = parseInt(id, 10);
 				 if (btnCode === 2) {
 				     if (game.data.tiles[id].isVisited === false && game.data.hasExploded === false && game.data.isTimeOver === false) {
-					 var start = +new Date();  // log start timestamp
-					 game.controllers.flagNode(target, id);
-					 var end =  +new Date();  // log end timestamp
-					 var diff = end - start;
-					 console.log(diff);
-					
+					 game.controllers.flagNode(target, id);					
 				     }
 				 }
 				 else {
 				     if (game.data.tiles[id].eventAttached === true) {
-					 var start = +new Date();  // log start timestamp
 					 game.controllers.clickToPlay(target, id);
-					 var end =  +new Date();  // log end timestamp
-					 var diff = end - start;
-					 console.log(diff);
 				     } 
 				 }
 			     }
@@ -416,58 +443,54 @@
 		    }, 1000);
 		},
 		calcValues: function () {
-		    var mine, upTd, downTd, currentNode;
+		    var upTd, downTd;
 		    
 		    //calculating total 8 values around each mine
 		    game.data.tiles.forEach(function (element, index, array) {
 			
 			if (element.value === -1) {
-			    mine = element.cell;
 			  
 			    //incrementing value of west node 
-			    if (mine.previousElementSibling !== null && array[index-1].value !== -1) {
+			    if (element.left !== undefined && array[index-1].value !== -1) {
 				array[index-1].value += 1;
 			    }
 
 			    //incrementing value of east node
-			    if (mine.nextElementSibling !== null && array[index+1].value !== -1) {
+			    if (element.right !== undefined && array[index+1].value !== -1) {
 				array[index+1].value += 1;
 			    }
 			   
-
-			    if (mine.parentNode.previousElementSibling !== null) {	
+			    if (element.up !== undefined) {	
 				//incrementing value of north node
 				upTd = index - game.data.ms.cols;
-				currentNode = array[upTd].cell;
 				
 				if (array[upTd].value !== -1)  {
 				    array[upTd].value += 1; 
 				}    
 				//incrementing value of north-west node
-				if (currentNode.previousElementSibling !== null && array[upTd - 1].value !== -1) {
+				if (element.left !== undefined && array[upTd - 1].value !== -1) {
 				    array[upTd - 1].value += 1;
 				}
 				//incrementing value of north-east node
-				if (currentNode.nextElementSibling !== null && array[upTd + 1].value !== -1) {
+				if (element.right !== undefined && array[upTd + 1].value !== -1) {
 				    array[upTd + 1].value += 1;
 				}
 			    }
 
-			    if (mine.parentNode.nextElementSibling !== null) {
+			    if (element.down !== undefined) {
 				
 				//incrementing value of south node
 				downTd = index + game.data.ms.cols;
-				currentNode = array[downTd].cell;
 				
 				if (array[downTd].value !== -1) {
 				    array[downTd].value += 1;
 				}
 				//incrementing value of south-west node
-				if (currentNode.previousElementSibling !== null && array[downTd - 1].value !== -1) {
+				if (element.left !== undefined && array[downTd - 1].value !== -1) {
 				    array[downTd - 1].value += 1;
 				}    
 				//incrementing value of south-east node
-				if (currentNode.nextElementSibling !== null && array[downTd + 1].value !== -1) {
+				if (element.right !== undefined && array[downTd + 1].value !== -1) {
 				    array[downTd + 1].value += 1;					
 				}
 				
@@ -483,20 +506,22 @@
 		    if (node.value === -1 && node.isFlag === false) {
 			game.ui.clickedMine(node.cell);
 			game.data.hasExploded = true;
+
 			//display each & every mine
 			game.data.tiles.forEach(function (element, index, array) {
 			    if (element.value === -1 && element.isFlag === false) {
 				mine = element.cell;
 				game.ui.exploreNode(mine);
 				game.ui.setNodeImage(mine, game.data.ms.path + game.data.ms.images.explosion);
+				game.controllers.removeMouseEvents(index);
 			    }
 			    else {
 				game.controllers.traverse(index, element.cell);
 			    }
-			    game.controllers.removeMouseEvents(index);
 
 			});
-			
+
+			//stop timer and display sad smiley
 			game.controllers.timer("stop");
 			game.data.smiley.setAttribute("src", game.data.ms.path + game.data.ms.images.sad);
 			return true;
@@ -504,13 +529,14 @@
 		    return false;
 		},
 		traverse: function (k, thisNode) {
-		    var left, right, up, down, id;
+		    var id;
 		    
 		    //already visited this node 
 		    if (game.data.tiles[k].isVisited === true || game.data.tiles[k].value === -1 ) {
 			return false;
 		    }
-
+		    
+		    //explore wrongly flagged nodes after mines explode
 		    if (game.data.tiles[k].isFlag === true) {
 			if (game.data.hasExploded === true) {
 			    game.ui.exploreNode(thisNode);
@@ -518,11 +544,6 @@
 			}
 			return false;
 		    }
-		    
-		    left = thisNode.previousElementSibling;
-		    right = thisNode.nextElementSibling;
-		    up =  thisNode.parentNode.previousElementSibling;
-		    down = thisNode.parentNode.nextElementSibling;
 		    
 		    game.data.tiles[k].isVisited = true;
 		    nodeValue = game.data.tiles[k].value;
@@ -535,44 +556,45 @@
 			//for blank nodes
 			game.ui.exploreNode(thisNode, nodeValue);
 			//visit west node of current node 
-			if (left !== null) {
-			    game.controllers.traverse(k-1, left);
+			if (game.data.tiles[k].left !== undefined) {
+			    game.controllers.traverse(k-1, game.data.tiles[k].left);
 			}
 			//visit east node of current node
-			if (right !== null) {
-			    game.controllers.traverse(k+1, right);
+			if (game.data.tiles[k].right !== undefined) {
+			    game.controllers.traverse(k+1, game.data.tiles[k].right);
 			}
 			//visit north node of current node
-			if (up !== null) {
+			if (game.data.tiles[k].up !== undefined) {
 			    id = k - game.data.ms.cols;
-			    game.controllers.traverse(id, game.data.tiles[id].cell);
+			    game.controllers.traverse(id, game.data.tiles[k].up);
+
+			    //visit north-west node of current node
+			    if (game.data.tiles[k].left !== undefined) {
+				id = (k - game.data.ms.cols) - 1;
+				game.controllers.traverse(id, game.data.tiles[id].cell);
+			    }
+			    //visit north-east node of current node
+			    if (game.data.tiles[k].right !== undefined) {
+				id = (k - game.data.ms.cols) + 1;
+				game.controllers.traverse(id, game.data.tiles[id].cell);
+			    }
 			}
 			//visit south node of current node
-			if (down !== null) {
+			if (game.data.tiles[k].down !== undefined) {
 			    id = k + game.data.ms.cols;
-			    game.controllers.traverse(id, game.data.tiles[id].cell);
-			}
-			//visit north-west node of current node
-			if (up !== null && left !== null) {
-			    id = (k - game.data.ms.cols) - 1;
-			    game.controllers.traverse(id, game.data.tiles[id].cell);
-			}
-			//visit north-east node of current node
-			if (up !== null && right !== null) {
-			    id = (k - game.data.ms.cols) + 1;
-			    game.controllers.traverse(id, game.data.tiles[id].cell);
-			}
-			//visit south-west node of current node
-			if (down !== null && left !== null) {
-			    id = (k + game.data.ms.cols)-1;
-			    game.controllers.traverse(id, game.data.tiles[id].cell);
-			}
-			//visit south-east node of current node
-			if (down !== null && right !== null) {
-			    id = (k + game.data.ms.cols) + 1;
-			    game.controllers.traverse(id, game.data.tiles[id].cell);
-			}
+			    game.controllers.traverse(id, game.data.tiles[k].down);
 
+			    //visit south-west node of current node
+			    if (game.data.tiles[k].left !== undefined) {
+				id = (k + game.data.ms.cols)-1;
+				game.controllers.traverse(id, game.data.tiles[id].cell);
+			    }
+			    //visit south-east node of current node
+			    if (game.data.tiles[k].right !== undefined) {
+				id = (k + game.data.ms.cols) + 1;
+				game.controllers.traverse(id, game.data.tiles[id].cell);
+			    }
+			}
 		    } 
 		    else {
 			//current node is numbered tile 
@@ -582,19 +604,18 @@
 		    return true;
 		},
 		win: function () {
-		    //calculate all nodes which don't have blank-block class
-		    
+		
 		    var count = 0, node;
 		    
 		    game.data.tiles.forEach(function (element, index, array) {
-			if (element.isVisited === true) {
-			    count+=1;
+			if (element.isVisited === false) {
+			    count += 1;
 			}
 		    });
 
 		    //player wins the game if total number of visited node 
 		    //are equal to total number of nodes minus total no of mines
-		    if (count === (game.data.rowsIntoCols - game.data.ms.bombs)) {
+		    if (count === game.data.ms.bombs) {
 			
 			game.data.smiley.setAttribute("src", game.data.ms.path + game.data.ms.images.king);
 			
@@ -617,12 +638,7 @@
 
 	return {
 	    initUI: function(ms) {
-		if (ms === undefined) {
-		    game.data.ms = gameObject().getObject();
-		}
-		else {
-		    game.data.ms = ms;
-		}
+		game.data.ms = ms;
 		game.ui.generateTable();
 		game.data.table.innerHTML = game.data.template;
 		game.data.bomb.innerHTML = game.data.ms.bombs;
