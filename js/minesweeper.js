@@ -6,6 +6,16 @@
 	    rows: 10,
 	    cols: 10,
 	    bombs: 8,
+	    urls: {
+		online1: "http://aniket19.github.io/Minesweeper/",
+		online2: "http://aniket19.github.io/Minesweeper/index.html",
+		local: "file:///home/aniket/Minesweeper/index.html"
+	    },
+	    levelUrls: {
+		beginner: "?level=beginner",
+		intermediate: "?level=intermediate",
+		expert: "?level=expert"
+	    },
 	    path: "images/",
 	    images: {
 		surprise: "surprise.png",
@@ -34,11 +44,11 @@
     }
 
     
-    var start;
-    start = initGame();
+    var start, url;
+    url = "";
 
-    //preload all images for better gameplay.
-    function preloadImages() {
+    function loadResources() {
+	//preload all images for better gameplay.
 	var img = [], width = 16, ms;
 	ms = gameObject().getObject();
 	for (var image in ms.images) {
@@ -47,31 +57,55 @@
 		img[image].src = ms.path + ms.images[image];
 	    } 
 	}
-	//start begginer level game automatically
-	start.initUI(ms);
+	
+	start = initGame();
 	start.initEvents();
+	
+	//load level depending on url
+	url = window.location.href;
+	gameMenu();
     }
 
-    window.onload = preloadImages;
+    window.onload = loadResources;
     
     // change UI and game variables as per selected level
-    (function gameMenu() {
-	var level1, level2, level3, smiley, clock, game, ms;
+    function gameMenu() {
+	var radio, smiley, clock, game, ms, ob1;
 	
-	level1 = document.getElementById("beginner");
-	level2 = document.getElementById("intermediate");
-	level3 = document.getElementById("expert");
-
+	radio = document.getElementsByName("level");
 	smiley = document.getElementById("smiley-img");
 	clock = document.getElementById("clock-img");
 
 	game = document.getElementById("game");
 
 	ms = gameObject();
+	
+	ob1 = ms.getObject();
+	
+	switch (url) {
+	    case ob1.urls.online1 + ob1.levelUrls.intermediate : 
+	    case ob1.urls.online2 + ob1.levelUrls.intermediate : 
+	         radio[1].checked = true;
+	         intermediateSelected(); 
+	         break;
 
+	    case ob1.urls.online1 + ob1.levelUrls.expert : 
+	    case ob1.urls.online2 + ob1.levelUrls.expert : 
+	         radio[2].checked = true;
+	         expertSelected(); 
+	         break;
+
+	    default : 
+	            radio[0].checked = true;
+	            beginnerSelected(); 
+	            break;
+	} 
+	
 	function beginnerSelected() {
-	   var ob = ms.setObject(10,10,8);
+	    var ob = ms.setObject(10,10,8);
 	    
+	    window.location.href = ob.urls.online2 + ob.levelUrls.beginner;
+
 	    game.classList.add("game-level1");
 	    game.classList.remove("game-level2");
 	    game.classList.remove("game-level3");
@@ -91,6 +125,8 @@
 	function intermediateSelected() {
 	    var ob = ms.setObject(16,16,40);
 
+	    window.location.href = ob.urls.online2 + ob.levelUrls.intermediate;
+
 	    game.classList.remove("game-level1");
 	    game.classList.add("game-level2");
 	    game.classList.remove("game-level3");
@@ -102,7 +138,7 @@
 	    clock.classList.add("smiley-space2");
 	    clock.classList.remove("smiley-space1");
 	    clock.classList.remove("smiley-space3");
-	    
+
 	    start.resetTimer();
 	    start.initUI(ob);
 	}
@@ -110,6 +146,8 @@
 	function expertSelected() {
 	    var ob = ms.setObject(16,30,99);
 	    
+	    window.location.href = ob.urls.online2 + ob.levelUrls.expert;
+
 	    game.classList.remove("game-level1");
 	    game.classList.remove("game-level2");
 	    game.classList.add("game-level3");
@@ -126,11 +164,11 @@
 	    start.initUI(ob);
 	}
 	
-	level1.addEventListener("click", beginnerSelected, false);
-	level2.addEventListener("click", intermediateSelected, false);
-	level3.addEventListener("click", expertSelected, false);
+	radio[0].addEventListener("click", beginnerSelected, false);
+	radio[1].addEventListener("click", intermediateSelected, false);
+	radio[2].addEventListener("click", expertSelected, false);
 
-    }());
+    }
 
     function initGame() {
 	
