@@ -11,9 +11,9 @@
 		local: "file:///home/aniket/Minesweeper/index.html"
 	    },
 	    levelUrls: {
-		beginner: "/beginner",
-		intermediate: "/intermediate",
-		expert: "/expert"
+		beginner: "?level=beginner",
+		intermediate: "?level=intermediate",
+		expert: "?level=expert"
 	    },
 	    path: "images/",
 	    images: {
