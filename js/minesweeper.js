@@ -7,7 +7,8 @@
 	    cols: 10,
 	    bombs: 8,
 	    urls: {
-		online: "http://aniket19.github.io/Minesweeper/index.html",
+		online1: "http://aniket19.github.io/Minesweeper/index.html",
+		online2: "http://aniket19.github.io/Minesweeper/",
 		local: "file:///home/aniket/Minesweeper/index.html"
 	    },
 	    levelUrls: {
@@ -82,12 +83,14 @@
 	ob1 = ms.getObject();
 	
 	switch (url) {
-	    case ob1.urls.online + ob1.levelUrls.intermediate : 
+	    case ob1.urls.online1 + ob1.levelUrls.intermediate : 
+	    case ob1.urls.online2 + ob1.levelUrls.intermediate : 
 	         radio[1].checked = true;
 	         intermediateSelected(); 
 	         break;
 
-	    case ob1.urls.online + ob1.levelUrls.expert : 
+	    case ob1.urls.online1 + ob1.levelUrls.expert : 
+	    case ob1.urls.online2 + ob1.levelUrls.expert : 
 	         radio[2].checked = true;
 	         expertSelected(); 
 	         break;
