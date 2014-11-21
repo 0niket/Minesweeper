@@ -11,9 +11,9 @@
 		local: "file:///home/aniket/Minesweeper/index.html"
 	    },
 	    levelUrls: {
-		beginner: "#beginner",
-		intermediate: "#intermediate",
-		expert: "#expert"
+		beginner: "/beginner",
+		intermediate: "/intermediate",
+		expert: "/expert"
 	    },
 	    path: "images/",
 	    images: {
@@ -101,7 +101,7 @@
 	function beginnerSelected() {
 	    var ob = ms.setObject(10,10,8);
 	    
-	    window.location.href = ob.urls.online + ob.levelUrls.beginner;
+	    history.pushState(null, "Minesweeper - level1", ob.levelUrls.beginner);
 
 	    game.classList.add("game-level1");
 	    game.classList.remove("game-level2");
@@ -121,8 +121,8 @@
 
 	function intermediateSelected() {
 	    var ob = ms.setObject(16,16,40);
-
-	    window.location.href = ob.urls.online + ob.levelUrls.intermediate;
+	    
+	    history.pushState(null, "Minesweeper - level2", ob.levelUrls.intermediate);
 
 	    game.classList.remove("game-level1");
 	    game.classList.add("game-level2");
@@ -142,8 +142,8 @@
 	
 	function expertSelected() {
 	    var ob = ms.setObject(16,30,99);
-	    
-	    window.location.href = ob.urls.online + ob.levelUrls.expert;
+
+	    history.pushState(null, "Minesweeper - level3", ob.levelUrls.expert);
 
 	    game.classList.remove("game-level1");
 	    game.classList.remove("game-level2");
