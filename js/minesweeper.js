@@ -444,7 +444,6 @@
 		},
 		calcValues: function () {
 		    var upTd, downTd;
-		    
 		    //calculating total 8 values around each mine
 		    game.data.tiles.forEach(function (element, index, array) {
 			
