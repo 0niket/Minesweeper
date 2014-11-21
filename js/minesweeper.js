@@ -7,8 +7,7 @@
 	    cols: 10,
 	    bombs: 8,
 	    urls: {
-		online1: "http://aniket19.github.io/Minesweeper/",
-		online2: "http://aniket19.github.io/Minesweeper/index.html",
+		online: "http://aniket19.github.io/Minesweeper/index.html",
 		local: "file:///home/aniket/Minesweeper/index.html"
 	    },
 	    levelUrls: {
@@ -83,14 +82,12 @@
 	ob1 = ms.getObject();
 	
 	switch (url) {
-	    case ob1.urls.online1 + ob1.levelUrls.intermediate : 
-	    case ob1.urls.online2 + ob1.levelUrls.intermediate : 
+	    case ob1.urls.online + ob1.levelUrls.intermediate : 
 	         radio[1].checked = true;
 	         intermediateSelected(); 
 	         break;
 
-	    case ob1.urls.online1 + ob1.levelUrls.expert : 
-	    case ob1.urls.online2 + ob1.levelUrls.expert : 
+	    case ob1.urls.online + ob1.levelUrls.expert : 
 	         radio[2].checked = true;
 	         expertSelected(); 
 	         break;
@@ -104,7 +101,7 @@
 	function beginnerSelected() {
 	    var ob = ms.setObject(10,10,8);
 	    
-	    window.location.href = ob.urls.online2 + ob.levelUrls.beginner;
+	    window.location.href = ob.urls.online + ob.levelUrls.beginner;
 
 	    game.classList.add("game-level1");
 	    game.classList.remove("game-level2");
@@ -125,7 +122,7 @@
 	function intermediateSelected() {
 	    var ob = ms.setObject(16,16,40);
 
-	    window.location.href = ob.urls.online2 + ob.levelUrls.intermediate;
+	    window.location.href = ob.urls.online + ob.levelUrls.intermediate;
 
 	    game.classList.remove("game-level1");
 	    game.classList.add("game-level2");
@@ -146,7 +143,7 @@
 	function expertSelected() {
 	    var ob = ms.setObject(16,30,99);
 	    
-	    window.location.href = ob.urls.online2 + ob.levelUrls.expert;
+	    window.location.href = ob.urls.online + ob.levelUrls.expert;
 
 	    game.classList.remove("game-level1");
 	    game.classList.remove("game-level2");
