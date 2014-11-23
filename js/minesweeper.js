@@ -37,7 +37,7 @@
     var start, url;
     url = "";
 
-    function loadResources() {
+    (function loadResources() {
 	//preload all images for better gameplay.
 	var img = [], width = 16, ms;
 	ms = gameObject().getObject();
@@ -54,13 +54,7 @@
 	//load level depending on url
 	url = window.location.href;
 	gameMenu();
-    }
-
-    window.onload = loadResources;
-    window.addEventListener("popstate", function (event) {
-	var state = window.history.state;
-	console.log(state);
-    },false);
+    }());
 
     // change UI and game variables as per selected level
     function gameMenu() {
@@ -76,17 +70,17 @@
 		beginner: {
 		    gameMargine: "game-level1",
 		    smileyDistance: "smiley-space1",
-		    level: "level1",
+		    level: "beginner",
 		    rows: 10,
 		    cols: 10,
 		    bombs: 8,
-		    tiltle: "Minesweeper - level 1",
+		    title: "Minesweeper - level 1",
 		    url: "?level=beginner"
 		},
 		intermediate: {
 		    gameMargine: "game-level2",
 		    smileyDistance: "smiley-space2",
-		    level: "level2",
+		    level: "intermediate",
 		    rows: 16,
 		    cols: 16,
 		    bombs: 40,
@@ -96,11 +90,11 @@
 		expert: {
 		    gameMargine: "game-level3",
 		    smileyDistance: "smiley-space3",
-		    level: "level3",
+		    level: "expert",
 		    rows: 16,
 		    cols: 30,
 		    bombs: 99,
-		    tiltle: "Minesweeper - level 3",
+		    title: "Minesweeper - level 3",
 		    url: "?level=expert"
 		}
 	    }
@@ -114,43 +108,45 @@
 
 	ms = gameObject();
 
+	history.replaceState(null, '', '');
+
 	switch (url) {
 	    case menu.urls.online1 + menu.pages.intermediate.url: 
 	    case menu.urls.online2 + menu.pages.intermediate.url: 
 	    case menu.urls.local + menu.pages.intermediate.url: 
-	         radio[1].checked = true;
 	         levelSelected("intermediate"); 
 	         break;
 
 	    case menu.urls.online1 + menu.pages.expert.url: 
 	    case menu.urls.online2 + menu.pages.expert.url: 
 	    case menu.urls.local + menu.pages.expert.url: 
-	         radio[2].checked = true;
 	         levelSelected("expert"); 
 	         break;
 
 	    default: 
-	         radio[0].checked = true;
 	         levelSelected("beginner"); 
 	         break;
-	} 
+	}
 		
 	function levelSelected(level) {
 	    
 	    var ob = ms.setObject(menu.pages[level].rows, menu.pages[level].cols, menu.pages[level].bombs)
 	    ,levelarray = ["beginner","intermediate","expert"];
 
-	    history.pushState(menu.pages[level], menu.pages[level].title, menu.pages[level].url);
+	    document.title = menu.pages[level].title;
 
 	    game.classList.add(menu.pages[level].gameMargine);
 	    smiley.classList.add(menu.pages[level].smileyDistance);
 	    clock.classList.add(menu.pages[level].smileyDistance);
 	    
-	    levelarray.forEach(function (element) {
+	    levelarray.forEach(function (element, index) {
 		if (element !== level) {
 		    game.classList.remove(menu.pages[element].gameMargine);
 		    smiley.classList.remove(menu.pages[element].smileyDistance);
 		    clock.classList.remove(menu.pages[element].smileyDistance);
+		}
+		else {
+		    radio[index].checked = true;
 		}
 	    });
 
@@ -160,17 +156,16 @@
 
 	for (var radioIndex = 0; radioIndex < radio.length; radioIndex += 1) {
 	    radio[radioIndex].addEventListener("click", function () {
-		var level = "beginner";
-		if (this.value === menu.pages.intermediate.level) {
-		    level = "intermediate";
-		}
-		else if (this.value === menu.pages.expert.level) {
-		    level = "expert";
-		}
-		levelSelected(level);
+		history.pushState(menu.pages[this.value], menu.pages[this.value].title, menu.pages[this.value].url);
+		levelSelected(this.value);
 	    }, false);
 	}
 
+	window.addEventListener("popstate", function (event) {
+	    if (event.state !== null) {
+		levelSelected(event.state.level);
+	    }
+	},false);
     }
 
     function initGame() {
