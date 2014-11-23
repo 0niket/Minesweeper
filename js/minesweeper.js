@@ -6,16 +6,6 @@
 	    rows: 10,
 	    cols: 10,
 	    bombs: 8,
-	    urls: {
-		online1: "http://aniket19.github.io/Minesweeper/index.html",
-		online2: "http://aniket19.github.io/Minesweeper/",
-		local: "file:///home/aniket/Minesweeper/index.html"
-	    },
-	    levelUrls: {
-		beginner: "?level=beginner",
-		intermediate: "?level=intermediate",
-		expert: "?level=expert"
-	    },
 	    path: "images/",
 	    images: {
 		surprise: "surprise.png",
@@ -67,10 +57,54 @@
     }
 
     window.onload = loadResources;
-    
+    window.addEventListener("popstate", function (event) {
+	var state = window.history.state;
+	console.log(state);
+    },false);
+
     // change UI and game variables as per selected level
     function gameMenu() {
-	var radio, smiley, clock, game, ms, ob1;
+	var radio, smiley, clock, game, ms, menu;
+	
+	menu = {
+	    urls: {
+		online1: "http://aniket19.github.io/Minesweeper/index.html",
+		online2: "http://aniket19.github.io/Minesweeper/",
+		local: "file:///home/aniket/Minesweeper/index.html"
+	    },
+	    pages: {
+		beginner: {
+		    gameMargine: "game-level1",
+		    smileyDistance: "smiley-space1",
+		    level: "level1",
+		    rows: 10,
+		    cols: 10,
+		    bombs: 8,
+		    tiltle: "Minesweeper - level 1",
+		    url: "?level=beginner"
+		},
+		intermediate: {
+		    gameMargine: "game-level2",
+		    smileyDistance: "smiley-space2",
+		    level: "level2",
+		    rows: 16,
+		    cols: 16,
+		    bombs: 40,
+		    title: "Minesweeper - level 2",
+		    url: "?level=intermediate"
+		},
+		expert: {
+		    gameMargine: "game-level3",
+		    smileyDistance: "smiley-space3",
+		    level: "level3",
+		    rows: 16,
+		    cols: 30,
+		    bombs: 99,
+		    tiltle: "Minesweeper - level 3",
+		    url: "?level=expert"
+		}
+	    }
+	};
 	
 	radio = document.getElementsByName("level");
 	smiley = document.getElementById("smiley-img");
@@ -79,94 +113,63 @@
 	game = document.getElementById("game");
 
 	ms = gameObject();
-	
-	ob1 = ms.getObject();
-	
+
 	switch (url) {
-	    case ob1.urls.online1 + ob1.levelUrls.intermediate : 
-	    case ob1.urls.online2 + ob1.levelUrls.intermediate : 
+	    case menu.urls.online1 + menu.pages.intermediate.url: 
+	    case menu.urls.online2 + menu.pages.intermediate.url: 
+	    case menu.urls.local + menu.pages.intermediate.url: 
 	         radio[1].checked = true;
-	         intermediateSelected(); 
+	         levelSelected("intermediate"); 
 	         break;
 
-	    case ob1.urls.online1 + ob1.levelUrls.expert : 
-	    case ob1.urls.online2 + ob1.levelUrls.expert : 
+	    case menu.urls.online1 + menu.pages.expert.url: 
+	    case menu.urls.online2 + menu.pages.expert.url: 
+	    case menu.urls.local + menu.pages.expert.url: 
 	         radio[2].checked = true;
-	         expertSelected(); 
+	         levelSelected("expert"); 
 	         break;
 
-	    default : 
-	            radio[0].checked = true;
-	            beginnerSelected(); 
-	            break;
+	    default: 
+	         radio[0].checked = true;
+	         levelSelected("beginner"); 
+	         break;
 	} 
-	
-	function beginnerSelected() {
-	    var ob = ms.setObject(10,10,8);
+		
+	function levelSelected(level) {
 	    
-	    history.pushState(null, "Minesweeper - level1", ob.levelUrls.beginner);
+	    var ob = ms.setObject(menu.pages[level].rows, menu.pages[level].cols, menu.pages[level].bombs)
+	    ,levelarray = ["beginner","intermediate","expert"];
 
-	    game.classList.add("game-level1");
-	    game.classList.remove("game-level2");
-	    game.classList.remove("game-level3");
+	    history.pushState(menu.pages[level], menu.pages[level].title, menu.pages[level].url);
+
+	    game.classList.add(menu.pages[level].gameMargine);
+	    smiley.classList.add(menu.pages[level].smileyDistance);
+	    clock.classList.add(menu.pages[level].smileyDistance);
 	    
-	    smiley.classList.remove("smiley-space2");
-	    smiley.classList.add("smiley-space1");
-	    smiley.classList.remove("smiley-space3");
-	    
-	    clock.classList.remove("smiley-space2");
-	    clock.classList.add("smiley-space1");
-	    clock.classList.remove("smiley-space3");
-	    
+	    levelarray.forEach(function (element) {
+		if (element !== level) {
+		    game.classList.remove(menu.pages[element].gameMargine);
+		    smiley.classList.remove(menu.pages[element].smileyDistance);
+		    clock.classList.remove(menu.pages[element].smileyDistance);
+		}
+	    });
+
 	    start.resetTimer();
 	    start.initUI(ob);
 	}
 
-	function intermediateSelected() {
-	    var ob = ms.setObject(16,16,40);
-	    
-	    history.pushState(null, "Minesweeper - level2", ob.levelUrls.intermediate);
-
-	    game.classList.remove("game-level1");
-	    game.classList.add("game-level2");
-	    game.classList.remove("game-level3");
-
-	    smiley.classList.add("smiley-space2");
-	    smiley.classList.remove("smiley-space1");
-	    smiley.classList.remove("smiley-space3");
-	    
-	    clock.classList.add("smiley-space2");
-	    clock.classList.remove("smiley-space1");
-	    clock.classList.remove("smiley-space3");
-
-	    start.resetTimer();
-	    start.initUI(ob);
+	for (var radioIndex = 0; radioIndex < radio.length; radioIndex += 1) {
+	    radio[radioIndex].addEventListener("click", function () {
+		var level = "beginner";
+		if (this.value === menu.pages.intermediate.level) {
+		    level = "intermediate";
+		}
+		else if (this.value === menu.pages.expert.level) {
+		    level = "expert";
+		}
+		levelSelected(level);
+	    }, false);
 	}
-	
-	function expertSelected() {
-	    var ob = ms.setObject(16,30,99);
-
-	    history.pushState(null, "Minesweeper - level3", ob.levelUrls.expert);
-
-	    game.classList.remove("game-level1");
-	    game.classList.remove("game-level2");
-	    game.classList.add("game-level3");
-
-	    smiley.classList.remove("smiley-space2");
-	    smiley.classList.remove("smiley-space1");
-	    smiley.classList.add("smiley-space3");
-
-	    clock.classList.remove("smiley-space2");
-	    clock.classList.remove("smiley-space1");
-	    clock.classList.add("smiley-space3");
-	    
-	    start.resetTimer();
-	    start.initUI(ob);
-	}
-	
-	radio[0].addEventListener("click", beginnerSelected, false);
-	radio[1].addEventListener("click", intermediateSelected, false);
-	radio[2].addEventListener("click", expertSelected, false);
 
     }
 
