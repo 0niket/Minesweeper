@@ -50,22 +50,15 @@
 	
 	start = initGame();
 	start.initEvents();
-	
-	//load level depending on url
-	url = window.location.href;
+
 	gameMenu();
     }());
 
     // change UI and game variables as per selected level
     function gameMenu() {
-	var radio, smiley, clock, game, ms, menu;
+	var radio, smiley, clock, game, ms, menu, query;
 	
 	menu = {
-	    urls: {
-		online1: "http://aniket19.github.io/Minesweeper/index.html",
-		online2: "http://aniket19.github.io/Minesweeper/",
-		local: "file:///home/aniket/Minesweeper/index.html"
-	    },
 	    pages: {
 		beginner: {
 		    gameMargine: "game-level1",
@@ -99,6 +92,13 @@
 		}
 	    }
 	};
+
+	function queryString (key) {
+	    return unescape(window.location.search.replace(
+		   new RegExp("^(?:.*[&\\?]" + escape(key).
+			       replace(/[\.\+\*]/g, "\\$&") + 
+			       "(?:\\=([^&]*))?)?.*$", "i"), "$1"));  
+	}
 	
 	radio = document.getElementsByName("level");
 	smiley = document.getElementById("smiley-img");
@@ -108,18 +108,16 @@
 
 	ms = gameObject();
 
-	history.replaceState(null, '', '');
+	history.replaceState(menu.pages.beginner, menu.pages.beginner.title, window.location.search);
 
-	switch (url) {
-	    case menu.urls.online1 + menu.pages.intermediate.url: 
-	    case menu.urls.online2 + menu.pages.intermediate.url: 
-	    case menu.urls.local + menu.pages.intermediate.url: 
-	         levelSelected("intermediate"); 
+	query = queryString("level");
+
+	switch (query) {
+	    case menu.pages.intermediate.level:  
+	         levelSelected("intermediate");
 	         break;
 
-	    case menu.urls.online1 + menu.pages.expert.url: 
-	    case menu.urls.online2 + menu.pages.expert.url: 
-	    case menu.urls.local + menu.pages.expert.url: 
+	    case menu.pages.expert.level: 
 	         levelSelected("expert"); 
 	         break;
 
@@ -156,15 +154,14 @@
 
 	for (var radioIndex = 0; radioIndex < radio.length; radioIndex += 1) {
 	    radio[radioIndex].addEventListener("click", function () {
-		history.pushState(menu.pages[this.value], menu.pages[this.value].title, menu.pages[this.value].url);
+		var query = "?level=" + menu.pages[this.value].level;
+		history.pushState(menu.pages[this.value], menu.pages[this.value].title, query);
 		levelSelected(this.value);
 	    }, false);
 	}
 
 	window.addEventListener("popstate", function (event) {
-	    if (event.state !== null) {
-		levelSelected(event.state.level);
-	    }
+	    levelSelected(event.state.level);
 	},false);
     }
 
