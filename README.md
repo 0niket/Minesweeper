@@ -1,4 +1,4 @@
 Minesweeper
 ===========
 
-To learn functional programming using JS
+To learn JS
